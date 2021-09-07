@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  redis:
+    image: redis
+    command: redis-server
+    # ports:
+      # - "6379:6379"
+    expose: 
+      - 6379
+    networks:
+      - nginx_network
+  
+  app:
+    build: .
+    volumes: 
+      - .:/usr/src/app
+    ports: 
+      - 3000
+    depends_on: 
+      - redis
+    # command: bash -c "npm install && npm start"
+    networks:
+      - nginx_network
+  
+  nginx:
+    image: nginx:1.13
+    ports:
+      - 80:80
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/logs/:/var/log/nginx/
+    depends_on:  
+      - app        
+      - redis
+    networks:
+      - nginx_network
+  
+networks:  # <-- and here
+  nginx_network:
+      driver: bridge
